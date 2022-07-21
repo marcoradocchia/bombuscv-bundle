@@ -12,7 +12,7 @@ NORM="\e[0m"
 # Installation path.
 BIN_DIR=$HOME/.local/bin
 
-# Check build dependencies
+# Print error message and exit.
 exit_msg() {
   printf $RED"==> Error:$NORM $1.\n"
   exit 1
@@ -29,7 +29,12 @@ check_deps() {
 install_datalogger_display() {
   # Check if ~/.local/bin dir exists and it's in PATH.
   [ -d $BIN_DIR ] || mkdir -p $BIN_DIR
-  echo $PATH | grep $HOME/.local/bin > /dev/null || exit_msg "please add \$HOME/.local/bin to PATH"
+  echo $PATH | grep $HOME/.local/bin > /dev/null \
+    || exit_msg "please add \$HOME/.local/bin to PATH"
+
+  printf "$CYAN\n####################################\n"
+  printf        "## Installing bombuscv-display... ##\n"
+  printf        "####################################\n$NORM"
 
   # Clone `bombuscv-display` repository and compile with `release` flag.
   [ -d bombuscv-display ] || git clone https://github.com/marcoradocchia/bombuscv-display
@@ -39,6 +44,10 @@ install_datalogger_display() {
   install -Dm755 ./target/release/bombuscv-display -t $BIN_DIR
   cd ..
   rm -rf bombuscv-display
+
+  printf "$CYAN\n###############################\n"
+  printf        "## Installing datalogger...  ##\n"
+  printf        "###############################\n$NORM"
 
   # Clone `datalogger` repository and compile with `release` flag.
   [ -d datalogger ] || git clone https://github.com/marcoradocchia/datalogger
@@ -50,12 +59,17 @@ install_datalogger_display() {
   rm -rf datalogger
 
   # Install systemd service for datalogger and display.
-  install -Dm644 ./bombuscv-display.service -t /etc/systemd/system/
+  sudo install -Dm644 ./bombuscv-display.service -t /etc/systemd/system/
   # Enable the service for boot startup.
   sudo systemctl enable bombuscv-display.service
 }
 
+# Install `bombuscv-rs`.
 install_bombuscv() {
+  printf "$CYAN\n###############################\n"
+  printf        "## Installing bombuscv-rs... ##\n"
+  printf        "###############################\n$NORM"
+
   curl \
     --proto '=https' \
     --tlsv1.2 \
@@ -63,6 +77,12 @@ install_bombuscv() {
     | sh
 }
 
+# Print greeting message.
+greeting() {
+  printf "$CYAN\n\n############################\n"
+  printf          "## Installation complete! ##\n"
+  printf          "############################\n$NORM"
+}
 
 printf "$YELLOW██████╗  ██████╗ ███╗   ███╗██████╗ ██╗   ██╗███████╗ ██████╗██╗   ██╗\n"
 printf        "██╔══██╗██╔═══██╗████╗ ████║██╔══██╗██║   ██║██╔════╝██╔════╝██║   ██║\n"
@@ -96,7 +116,9 @@ printf "  2) datalogger + bombuscv-display\n"
 printf "  3) complete bundle (bombusv-rs + datalogger + bombuscv-display)\n"
 printf $GREEN"==> "$NORM
 
-case $(read sel) in
+read selection
+printf "\n"
+case $selection in
   1) # Install `bombuscv-rs`.
     install_bombuscv
     break
@@ -114,10 +136,4 @@ case $(read sel) in
     printf $RED"invalid option:$NORM exiting...\n"
     exit 1
     ;;
-esac
-
-# Greeting message.
-printf
-printf "$CYAN############################\n"
-printf      "## Installation complete! ##\n"
-printf      "############################\n$NORM"
+esac && greeting
