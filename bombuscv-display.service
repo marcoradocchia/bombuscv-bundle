@@ -1,0 +1,13 @@
+[Unit]
+Description=Datalogger & Display
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+ExecStart=/bin/bash /home/pi/.local/bin/display-starter
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi
+Restart=on-failure
