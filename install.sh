@@ -110,7 +110,7 @@ install_bombuscv()
     --proto '=https' \
     --tlsv1.2 \
     -sSf https://raw.githubusercontent.com/marcoradocchia/bombuscv-rs/master/bombuscv-raspi.sh \
-    | bash -s -- -m -u
+    | bash -s -- -m -u -r
 }
 
 # Print greeting message.
