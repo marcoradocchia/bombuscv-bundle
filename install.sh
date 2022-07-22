@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# TODO: detect if script is being run as root and error if so.
-
-
 # Colored output.
 RED="\e[1;31m"
 YELLOW="\e[1;33m"

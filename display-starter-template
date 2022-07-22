@@ -1,2 +1,2 @@
 #!/bin/bash
-/home/<user>/.local/bin/datalogger -s -p 4 -i 120 | /home/<user>/.local/bin/bombuscv-display
+/home/<user>/.local/bin/datalogger -s -p 4 -i 120 $(date +"%Y%m%d") | /home/<user>/.local/bin/bombuscv-display
