@@ -2,12 +2,12 @@
   <h1 align="center">BombusCV Bundle</h1>
 </div>
 
-BombusCV complete package and installation scripts.
+BombusCV complete package and installation scripts for **Raspberry Pi**.
 
 This repository contains the full installation scripts to setup a **BombusCV
-device**. The installation script provides:
+device**[^1]. The installation script provides:
 
-- [`bombuscv-rs`](https://github.com/marcoradocchia/bombuscv-rs)[^1];
+- [`bombuscv-rs`](https://github.com/marcoradocchia/bombuscv-rs)[^2];
 - [`datalogger`](https://github.com/marcoradocchia/datalogger);
 - [`bombuscv-display`](https://github.com/marcoradocchia/bombuscv-display).
 
@@ -24,4 +24,17 @@ In order to run `bombuscv-rs` and `bobmuscv-display`, the script will enable
 The script will pull all the dependencies needed, so it can be run on a plain
 installation of Raspberry Pi OS.
 
-[^1]: Requires Raspberry Pi 4 with at least 4GB of RAM, running Raspberry Pi OS aarch64.
+[^1]: Raspberry Pi 4 (4GB of RAM) with Raspberry Pi camera, DHT22 humidity &
+  temperature sensor and SSD1306, 0.96" (128x64), I2C display
+[^2]: Requires Raspberry Pi 4 with at least 4GB of RAM, running Raspberry Pi OS
+  aarch64
+
+## Usage
+
+In order to install the **BombusCV Bundle** on **Raspberry Pi**, clone this
+repository and execute `install.sh` script:
+```sh
+git clone https://github.com/marcoradocchia/bombuscv-bundle.git
+cd bombuscv-bundle
+./install.sh
+```
