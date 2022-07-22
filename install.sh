@@ -56,7 +56,7 @@ install_datalogger_display()
   # Check if ~/.local/bin dir exists and it's in PATH.
   [ -d $BIN_DIR ] || mkdir -p $BIN_DIR
   echo $PATH | grep $HOME/.local/bin > /dev/null \
-    || exit_msg "please add \$HOME/.local/bin to PATH"
+    || exit_msg "please add $HOME/.local/bin to PATH"
 
   # Enable I2C interface with raspi-config in non-interactive mode.
   printf $GREEN"\n==> Enabling I2C interface...\n$NORM"
@@ -153,9 +153,9 @@ install_deps
 
 # User selection.
 printf $GREEN"Please select desierd option:\n"$NORM
-printf "  1) bombusv-rs\n"
+printf "  1) bombuscv-rs\n"
 printf "  2) datalogger + bombuscv-display\n"
-printf "  3) complete bundle (bombusv-rs + datalogger + bombuscv-display)\n"
+printf "  3) complete bundle (bombuscv-rs + datalogger + bombuscv-display)\n"
 printf $GREEN"==> "$NORM
 
 read selection # Read standard input.
