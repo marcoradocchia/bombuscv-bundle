@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO: set capabilities for `datalogger`
+
 # Colored output.
 RED="\e[1;31m"
 YELLOW="\e[1;33m"
@@ -9,6 +11,23 @@ NORM="\e[0m"
 
 # Installation path.
 BIN_DIR=$HOME/.local/bin
+
+# Ask for reboot.
+ask_reboot() 
+{
+  printf $GREEN"Please reboot your system before continung. Reboot now? [N/y]\n"
+  printf $GREEN"==> "$NORM
+
+  read selection # Read standard input.
+  case $selection in
+    Y|y)
+      systemctl reboot
+      ;;
+    *)
+      printf $YELLOW"==> Warning:$NORM changes will only be applied at next reboot\n"
+      ;;
+  esac
+}
 
 # Print error message and exit.
 exit_msg() 
@@ -24,7 +43,7 @@ install_deps()
   sudo apt-get install git raspi-config
   # If cargo isn't a command, install rustup.
   command -v cargo > /dev/null || {
-    printf "$GREEN==> Installing rustup...$NORM\n"
+    printf "$GREEN\n==> Installing rustup...$NORM\n"
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
   }
   # Can't install systemd if not already present: unrecoverable error.
@@ -40,7 +59,7 @@ install_datalogger_display()
     || exit_msg "please add \$HOME/.local/bin to PATH"
 
   # Enable I2C interface with raspi-config in non-interactive mode.
-  printf $GREEN"==> Enabling I2C interface...\n$NORM"
+  printf $GREEN"\n==> Enabling I2C interface...\n$NORM"
   sudo raspi-config nonint do_i2c 0
 
   printf $GREEN"\n==> Installing bombuscv-display...\n$NORM"
@@ -60,11 +79,24 @@ install_datalogger_display()
   cargo build --release
   # Install `datalogger` to ~/.local/bin.
   install -Dm755 ./target/release/datalogger -t $BIN_DIR
+  sudo setcap 'cap_sys_nice=eip' $BIN_DIR/datalogger
   cd ..
   rm -rf datalogger
 
+  # TODO: make possible for the user to configure programs.
+  # Customizing display-starter for the installing user.
+  sed "s/<user>/$USER/" ./display-starter-template > display-starter
+  # Install display-starter script (pipes datalogger output into bombuscv-display).
+  install -Dm755 ./display-starter -t $BIN_DIR
+  rm ./display-starter
+
+
+  # Customizing bombuscv-display.service for the installing user.
+  sed "s/<user>/$USER/" ./bombuscv-display-template.service > bombuscv-display.service
   # Install systemd service for datalogger and display.
   sudo install -Dm644 ./bombuscv-display.service -t /etc/systemd/system/
+  rm ./bombuscv-display.service
+
   # Enable the service for boot startup.
   sudo systemctl enable bombuscv-display.service
 }
@@ -127,7 +159,6 @@ printf "  3) complete bundle (bombusv-rs + datalogger + bombuscv-display)\n"
 printf $GREEN"==> "$NORM
 
 read selection # Read standard input.
-printf "\n"
 case $selection in
   1) # Install `bombuscv-rs`.
     install_bombuscv
@@ -143,4 +174,4 @@ case $selection in
     printf $RED"invalid option:$NORM exiting...\n"
     exit 1
     ;;
-esac && greet
+esac && greet && ask_reboot

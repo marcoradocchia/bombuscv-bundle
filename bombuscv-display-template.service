@@ -5,9 +5,9 @@ Description=Datalogger & Display
 WantedBy=multi-user.target
 
 [Service]
-ExecStart=/bin/bash /home/pi/.local/bin/display-starter
+ExecStart=/bin/bash /home/<user>/.local/bin/display-starter
 Type=simple
-User=pi
-Group=pi
-WorkingDirectory=/home/pi
+User=<user>
+Group=<user>
+WorkingDirectory=/home/<user>
 Restart=on-failure
