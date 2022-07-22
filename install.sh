@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# TODO: set capabilities for `datalogger`
+# TODO: detect if script is being run as root and error if so.
+
 
 # Colored output.
 RED="\e[1;31m"
@@ -141,6 +142,8 @@ printf      "##   - datalogger + bombuscv-display: generic Linux RaspberryPi    
 printf      "##   - bombuscv-rs: RaspberryPi 4 (4/8GB) with RaspberryPi OS aarch64      ##\n"
 printf      "## Warning: the installation process may take a while                      ##\n"
 printf      "#############################################################################\n\n$NORM"
+
+[ $USER = root ] && exit_msg "please don't run the script as root, run as normal user"
 
 # Check if apt-get is a command on the system.
 command -v apt-get > /dev/null || \
