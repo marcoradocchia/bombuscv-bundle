@@ -1,6 +1,4 @@
-#!/usr/bin/env sh
-
-# TODO: need to enable i2c on raspberry pi to make bombuscv-display work
+#!/bin/bash
 
 # Colored output.
 RED="\e[1;31m"
@@ -19,9 +17,15 @@ exit_msg() {
 }
 
 # Check dependencies.
-check_deps() {
-  command -v git > /dev/null || exit_msg  "please install git and retry"
-  command -v cargo > /dev/null || exit_msg "please install rustup and retry"
+install_deps() {
+  # Install raspi-config to enable I2C interface later.
+  sudo apt-get install git raspi-config
+  # If cargo isn't a command, install rustup.
+  command -v cargo > /dev/null || {
+    printf "$GREEN==> Installing rustup...$NORM\n"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  }
+  # Can't install systemd if not already present: unrecoverable error.
   command -v systemctl > /dev/null || exit_msg "systemd required in order to use this software"
 }
 
@@ -32,10 +36,11 @@ install_datalogger_display() {
   echo $PATH | grep $HOME/.local/bin > /dev/null \
     || exit_msg "please add \$HOME/.local/bin to PATH"
 
-  printf "$CYAN\n####################################\n"
-  printf        "## Installing bombuscv-display... ##\n"
-  printf        "####################################\n$NORM"
+  # Enable I2C interface with raspi-config in non-interactive mode.
+  printf $GREEN"==> Enabling I2C interface...\n"
+  sudo raspi-config nonint do_i2c 0
 
+  printf $GREEN"==> Installing bombuscv-display...\n"
   # Clone `bombuscv-display` repository and compile with `release` flag.
   [ -d bombuscv-display ] || git clone https://github.com/marcoradocchia/bombuscv-display
   cd bombuscv-display
@@ -45,10 +50,7 @@ install_datalogger_display() {
   cd ..
   rm -rf bombuscv-display
 
-  printf "$CYAN\n###############################\n"
-  printf        "## Installing datalogger...  ##\n"
-  printf        "###############################\n$NORM"
-
+  printf $GREEN"==> Installing datalogger...\n"
   # Clone `datalogger` repository and compile with `release` flag.
   [ -d datalogger ] || git clone https://github.com/marcoradocchia/datalogger
   cd datalogger
@@ -66,19 +68,17 @@ install_datalogger_display() {
 
 # Install `bombuscv-rs`.
 install_bombuscv() {
-  printf "$CYAN\n###############################\n"
-  printf        "## Installing bombuscv-rs... ##\n"
-  printf        "###############################\n$NORM"
+  printf $GREEN"==> Installing bombuscv-rs...\n"
 
   curl \
     --proto '=https' \
     --tlsv1.2 \
     -sSf https://raw.githubusercontent.com/marcoradocchia/bombuscv-rs/master/bombuscv-raspi.sh \
-    | sh
+    | sh -- -m -u
 }
 
 # Print greeting message.
-greeting() {
+greet() {
   printf "$CYAN\n\n############################\n"
   printf          "## Installation complete! ##\n"
   printf          "############################\n$NORM"
@@ -90,7 +90,6 @@ printf   "$NORM██████╔╝██║   ██║██╔███�
 printf        "██╔══██╗██║   ██║██║╚██╔╝██║██╔══██╗██║   ██║╚════██║██║     ╚██╗ ██╔╝\n"
 printf "$YELLOW██████╔╝╚██████╔╝██║ ╚═╝ ██║██████╔╝╚██████╔╝███████║╚██████╗ ╚████╔╝ \n"
 printf        "╚═════╝  ╚═════╝ ╚═╝     ╚═╝╚═════╝  ╚═════╝ ╚══════╝ ╚═════╝  ╚═══╝  $NORM\n"
-
 printf "$YELLOW        ██████╗ ██╗   ██╗███╗   ██╗██████╗ ██╗     ███████╗\n"
 printf        "        ██╔══██╗██║   ██║████╗  ██║██╔══██╗██║     ██╔════╝\n"
 printf   "$NORM        ██████╔╝██║   ██║██╔██╗ ██║██║  ██║██║     █████╗  \n"
@@ -106,8 +105,18 @@ printf      "##   - bombuscv-rs: RaspberryPi 4 (4/8GB) with RaspberryPi OS aarch
 printf      "## Warning: the installation process may take a while                      ##\n"
 printf      "#############################################################################\n\n$NORM"
 
-# Check dependencies.
-check_deps
+# Check if Raspberry Pi is running RaspberryPi OS 64 bits:
+[ $(uname -m) != "aarch64" -o $(command -v apt-get | wc -l) != 1 ] && \
+  exit_msg "please install RaspberryPi OS 64 bits and retry"
+
+# Check if Raspberry is at least 4GB RAM.
+[ $(free --mebi | grep -e "^Mem:" | awk '{print $2}') -lt 3000 ] && \
+  exit_msg "required at least 4GB of RAM"
+
+# Install updates & check dependencies.
+printf "$GREEN==> Updating the system & install dependencies...$NORM\n"
+sudo apt-get update && sudo apt-get upgrade
+install_deps
 
 # User selection.
 printf $GREEN"Please select desierd option:\n"$NORM
@@ -116,7 +125,7 @@ printf "  2) datalogger + bombuscv-display\n"
 printf "  3) complete bundle (bombusv-rs + datalogger + bombuscv-display)\n"
 printf $GREEN"==> "$NORM
 
-read selection
+read selection # Read standard input.
 printf "\n"
 case $selection in
   1) # Install `bombuscv-rs`.
@@ -136,4 +145,4 @@ case $selection in
     printf $RED"invalid option:$NORM exiting...\n"
     exit 1
     ;;
-esac && greeting
+esac && greet
