@@ -86,14 +86,14 @@ install_datalogger_display()
 
   # TODO: make possible for the user to configure programs.
   # Customizing display-starter for the installing user.
-  sed "s/<user>/$USER/" ./display-starter-template > display-starter
+  sed "s/<user>/$USER/g" ./display-starter-template > display-starter
   # Install display-starter script (pipes datalogger output into bombuscv-display).
   install -Dm755 ./display-starter -t $BIN_DIR
   rm ./display-starter
 
 
   # Customizing bombuscv-display.service for the installing user.
-  sed "s/<user>/$USER/" ./bombuscv-display-template.service > bombuscv-display.service
+  sed "s/<user>/$USER/g" ./bombuscv-display-template.service > bombuscv-display.service
   # Install systemd service for datalogger and display.
   sudo install -Dm644 ./bombuscv-display.service -t /etc/systemd/system/
   rm ./bombuscv-display.service
